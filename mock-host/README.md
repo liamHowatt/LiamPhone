@@ -1,0 +1,1 @@
+Made to run on Windows but easily tweaked to run on Linux. (other code ran in a Docker container and the host ran this to use the display). Requires pygame and Windows build tools.

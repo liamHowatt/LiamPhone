@@ -1,0 +1,1 @@
+This is a pico-sdk project. Everything in core/ is shared with mock-backend. Everything in platform/ is just for the microcontroller.

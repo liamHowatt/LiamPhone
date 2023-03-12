@@ -1,0 +1,1 @@
+compiles code in pico-phone and combines it with these files using interfaces. Runs a server. Uses POSIX C libraries like epoll.
