@@ -3,13 +3,13 @@
 #include <assert.h>
 #include "host_bridge.h"
 
-static void millisleep(long msec)
-{
-    struct timespec ts;
-    ts.tv_sec = msec / 1000;
-    ts.tv_nsec = (msec % 1000) * 1000000;
-    assert(!nanosleep(&ts, NULL));
-}
+// static void millisleep(long msec)
+// {
+//     struct timespec ts;
+//     ts.tv_sec = msec / 1000;
+//     ts.tv_nsec = (msec % 1000) * 1000000;
+//     assert(!nanosleep(&ts, NULL));
+// }
 
 static long millitime() {
     struct timespec ts;

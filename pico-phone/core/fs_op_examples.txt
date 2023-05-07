@@ -1,0 +1,200 @@
+static ASYNC_DEFINE_FUNCTION(loader, void)
+    while (1) {
+        static struct fs_close_data index_close_data;
+
+        static struct fs_open_data index_open_data = {.path="text_index"};
+        ASYNC_AWAIT(fs_open, &index_open_data);
+        static fs_fd index_fd;
+        index_fd = index_open_data.ret_fd;
+        printf("fd: %d\n", index_fd);
+        fflush(stdout);
+        // exit(0);
+        if (!loader_run) {
+            index_close_data.fd = index_fd;
+            ASYNC_AWAIT(fs_close, &index_close_data);
+            if (loader_run) {
+                continue;
+            }
+            loader_running = false;
+            break;
+        }
+
+        // static struct fs_size_data index_size_data;
+        // index_size_data.fd = index_fd;
+        // ASYNC_AWAIT(fs_size, &index_size_data);
+        // static int index_size;
+        // index_size = index_size_data.ret_size;
+        // printf("size: %d\n", index_size);
+        // fflush(stdout);
+        // // exit(0);
+        // if (!loader_run) {
+        //     index_close_data.fd = index_fd;
+        //     ASYNC_AWAIT(fs_close, &index_close_data);
+        //     if (loader_run) {
+        //         continue;
+        //     }
+        //     loader_running = false;
+        //     break;
+        // }
+
+        // static char *index;
+        // index = malloc(index_size);
+        // static struct fs_read_data index_read_data;
+        // index_read_data.fd = index_fd;
+        // index_read_data.buff = index;
+        // index_read_data.n = index_size;
+        // ASYNC_AWAIT(fs_read, &index_read_data);
+        // index_close_data.fd = index_fd;
+        // ASYNC_AWAIT(fs_close, &index_close_data);
+        // if (!loader_run) {
+        //     free(index);
+        //     loader_running = false;
+        //     break;
+        // }
+
+        static struct fs_read_data read_data;
+
+        static uint8_t number_length;
+        read_data.fd = index_fd;
+        read_data.buff = &number_length;
+        read_data.n = 1;
+        ASYNC_AWAIT(fs_read, &read_data);
+        if (!loader_run) {
+            index_close_data.fd = index_fd;
+            ASYNC_AWAIT(fs_close, &index_close_data);
+            if (loader_run) {
+                continue;
+            }
+            loader_running = false;
+            break;
+        }
+
+        read_data.fd = index_fd;
+        read_data.buff = loaded;
+        read_data.n = number_length;
+        ASYNC_AWAIT(fs_read, &read_data);
+        loaded[number_length] = '\0';
+        index_close_data.fd = index_fd;
+        ASYNC_AWAIT(fs_close, &index_close_data);
+        if (!loader_run) {
+            loader_running = false;
+            break;
+        }
+
+        loader_running = false;
+
+        printf("latest number: %s\n", loaded);
+        screen_machine_draw_me_if_top(uid);
+
+        break;
+    }
+ASYNC_DEFINE_FUNCTION_END
+
+
+
+static ASYNC_DEFINE_FUNCTION(loader, void)
+    while (1) {
+        static struct fs_close_data index_close_data;
+
+        static struct fs_open_data index_open_data = {.path="text_index"};
+        ASYNC_AWAIT(fs_open, &index_open_data);
+        static fs_fd index_fd;
+        index_fd = index_open_data.ret_fd;
+        printf("fd: %d\n", index_fd);
+        fflush(stdout);
+        // exit(0);
+        if (!loader_run) {
+            index_close_data.fd = index_fd;
+            ASYNC_AWAIT(fs_close, &index_close_data);
+            if (loader_run) {
+                continue;
+            }
+            loader_running = false;
+            break;
+        }
+
+        // static struct fs_size_data index_size_data;
+        // index_size_data.fd = index_fd;
+        // ASYNC_AWAIT(fs_size, &index_size_data);
+        // static int index_size;
+        // index_size = index_size_data.ret_size;
+        // printf("size: %d\n", index_size);
+        // fflush(stdout);
+        // // exit(0);
+        // if (!loader_run) {
+        //     index_close_data.fd = index_fd;
+        //     ASYNC_AWAIT(fs_close, &index_close_data);
+        //     if (loader_run) {
+        //         continue;
+        //     }
+        //     loader_running = false;
+        //     break;
+        // }
+
+        // static char *index;
+        // index = malloc(index_size);
+        // static struct fs_read_data index_read_data;
+        // index_read_data.fd = index_fd;
+        // index_read_data.buff = index;
+        // index_read_data.n = index_size;
+        // ASYNC_AWAIT(fs_read, &index_read_data);
+        // index_close_data.fd = index_fd;
+        // ASYNC_AWAIT(fs_close, &index_close_data);
+        // if (!loader_run) {
+        //     free(index);
+        //     loader_running = false;
+        //     break;
+        // }
+
+        static struct fs_seek_data seek_data;
+        seek_data.fd = index_fd;
+        seek_data.n = 2;
+        seek_data.whence = 1;
+        ASYNC_AWAIT(fs_seek, &seek_data);
+        if (!loader_run) {
+            index_close_data.fd = index_fd;
+            ASYNC_AWAIT(fs_close, &index_close_data);
+            if (loader_run) {
+                continue;
+            }
+            loader_running = false;
+            break;
+        }
+
+        static struct fs_read_data read_data;
+
+        static uint8_t number_length;
+        read_data.fd = index_fd;
+        read_data.buff = &number_length;
+        read_data.n = 1;
+        ASYNC_AWAIT(fs_read, &read_data);
+        if (!loader_run) {
+            index_close_data.fd = index_fd;
+            ASYNC_AWAIT(fs_close, &index_close_data);
+            if (loader_run) {
+                continue;
+            }
+            loader_running = false;
+            break;
+        }
+
+        read_data.fd = index_fd;
+        read_data.buff = loaded;
+        read_data.n = number_length;
+        ASYNC_AWAIT(fs_read, &read_data);
+        loaded[number_length] = '\0';
+        index_close_data.fd = index_fd;
+        ASYNC_AWAIT(fs_close, &index_close_data);
+        if (!loader_run) {
+            loader_running = false;
+            break;
+        }
+
+        loader_running = false;
+
+        printf("latest number: %s\n", loaded);
+        screen_machine_draw_me_if_top(uid);
+
+        break;
+    }
+ASYNC_DEFINE_FUNCTION_END

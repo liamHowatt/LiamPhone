@@ -23,7 +23,7 @@ pico_enable_stdio_usb(phone 1)
 pico_enable_stdio_uart(phone 0)
 
 # pull in common dependencies
-target_link_libraries(phone pico_stdlib)
+target_link_libraries(phone pico_stdlib hardware_spi hardware_dma)
 
 target_include_directories(phone PRIVATE ${PROJECT_SOURCE_DIR}/core)
 target_include_directories(phone PRIVATE ${PROJECT_SOURCE_DIR}/platform)

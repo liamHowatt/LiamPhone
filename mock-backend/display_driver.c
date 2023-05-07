@@ -4,14 +4,18 @@
 #include <stdio.h>
 
 
-ASYNC_DEFINE_FUNCTION(display_driver_task, host_transmit_data)
-    ASYNC_ALLOCATE_DATA(host_transmit_data);
-    data->code = HOST_CODE_DISPLAY;
-    data->bytes = display_fbs[display_usr_fb_i];
-    data->len = FB_LEN;
+static ASYNC_DEFINE_FUNCTION(display_driver_task, host_transmit_data)
     while (1) {
         // puts("sending frame...");
         ASYNC_AWAIT(host_transmit, data);
+        ASYNC_SLEEP(50);
     }
-    // free(data);
 ASYNC_DEFINE_FUNCTION_END
+
+void display_driver_init() {
+    static host_transmit_data task_data;
+    task_data.code = HOST_CODE_DISPLAY;
+    task_data.bytes = display_fb;
+    task_data.len = FB_LEN;
+    async_spawn(display_driver_task, &task_data);
+}

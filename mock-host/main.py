@@ -4,6 +4,8 @@ import io
 import time
 import pygame as pg
 import ctypes as ct
+import struct
+import os
 
 Re = asyncio.StreamReader
 Wr = asyncio.StreamWriter
@@ -42,7 +44,22 @@ def draw_screen_fast(pgBuff: pg.Surface, spiBuff: bytes):
     rawSpiBuff = (ct.c_uint8 * len(spiBuff)).from_buffer_copy(spiBuff)
     fast_draw_dll.fast_draw(rawPgBuff, rawSpiBuff)
 
+
+# encoder = 0
+# async def encoder_incrementer():
+#     global encoder
+#     while True:
+#         await asyncio.sleep(1)
+#         encoder += 1
+
 async def a_main() -> None:
+    # asyncio.create_task(encoder_incrementer())
+    encoder = 0
+
+    button_presses = []
+
+    files = {}
+
     reader, writer = await asyncio.open_connection("localhost", 3000)
     pg.init()
     bg = pg.Surface((400, 240))
@@ -50,25 +67,96 @@ async def a_main() -> None:
 
     while True:
 
-        assert await initTransaction(reader) == 1
+        code = await initTransaction(reader)
 
-        screen = await reader.readexactly(12482)
-
-        # bg.fill((0, 0, 0))
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 exit()
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_UP:
+                    encoder -= 1
+                elif event.key == pg.K_DOWN:
+                    encoder += 1
+                elif event.key == pg.K_RETURN:
+                    button_presses.insert(0, 0)
+                elif event.key == pg.K_BACKSPACE:
+                    button_presses.insert(0, 1)
 
-        # t = time.time()
-        draw_screen_fast(bg, screen)
-        # print(time.time() - t)
-        
-        window.blit(bg, (0, 0))
-        pg.display.flip()
+        if code == 1: # display
 
-        await asyncio.sleep(0.05)
+            screen = await reader.readexactly(12482)
+
+            # t = time.time()
+            draw_screen_fast(bg, screen)
+            # print(time.time() - t)
+            
+            window.blit(bg, (0, 0))
+            pg.display.flip()
+
+            # await asyncio.sleep(0.05)
+            
+            await finishTransaction(reader, writer, b'')
         
-        await finishTransaction(reader, writer, b'')
+        elif code == 2: # encoder
+            await finishTransaction(reader, writer, struct.pack("<i", encoder))
+
+        elif code == 3: # button
+            await finishTransaction(reader, writer, struct.pack("<b",
+                button_presses.pop()
+                if button_presses
+                else -1
+            ))
+        
+        elif code == 4: # file open
+            path_len = struct.unpack("<B", await reader.readexactly(1))[0]
+            print(f"{path_len=}")
+            path = await reader.readexactly(path_len)
+            print(f"{path=}")
+            f = open(b"disk\\" + path, "rb")
+            fd = f.fileno()
+            print(f"open {fd=}")
+            await finishTransaction(reader, writer, struct.pack("<i", fd))
+            files[fd] = f
+
+        elif code == 5: # file close
+            fd = struct.unpack("<i", await reader.readexactly(4))[0]
+            print(f"close {fd=}")
+            files.pop(fd).close()
+            await finishTransaction(reader, writer, b'')
+
+        elif code == 6: # file size
+            fd = struct.unpack("<i", await reader.readexactly(4))[0]
+            print(f"size {fd=}")
+            f = files[fd]
+            offset = f.tell()
+            size = f.seek(0, 2)
+            f.seek(offset, 0)
+            print(f"{size=}")
+            await finishTransaction(reader, writer, struct.pack("<i", size))
+
+        elif code == 7: # file read
+            fd = struct.unpack("<i", await reader.readexactly(4))[0]
+            print(f"read {fd=}")
+            n = struct.unpack("<i", await reader.readexactly(4))[0]
+            print(f"{n=}")
+            f = files[fd]
+            read_bytes = f.read(n)
+            print(f"{read_bytes=}")
+            assert len(read_bytes) == n
+            await finishTransaction(reader, writer, read_bytes)
+
+        elif code == 8: # file seek
+            fd = struct.unpack("<i", await reader.readexactly(4))[0]
+            print(f"seek {fd=}")
+            n = struct.unpack("<i", await reader.readexactly(4))[0]
+            print(f"{n=}")
+            whence = struct.unpack("<B", await reader.readexactly(1))[0]
+            print(f"{whence=}")
+            files[fd].seek(n, whence)
+            await finishTransaction(reader, writer, b'')
+
+        else:
+            raise Exception
     
 
 def main() -> None:

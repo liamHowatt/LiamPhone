@@ -30,9 +30,10 @@ static void *deserialize_pointer(uint8_t src[sizeof(void *)]) {
     return (void *) ret;
 }
 
-static void print_serialized_pointer(uint8_t ser[sizeof(void *)]) {
-    printf("%02x%02x%02x%02x%02x%02x%02x%02x\n", ser[0], ser[1], ser[2], ser[3], ser[4], ser[5], ser[6], ser[7]);
-}
+// TODO make work with not just 8 byte pointers
+// static void print_serialized_pointer(uint8_t ser[sizeof(void *)]) {
+//     printf("%02x%02x%02x%02x%02x%02x%02x%02x\n", ser[0], ser[1], ser[2], ser[3], ser[4], ser[5], ser[6], ser[7]);
+// }
 
 static int client;
 

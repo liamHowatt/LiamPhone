@@ -1,0 +1,29 @@
+
+{
+    "contacts": {
+        "Fry": "1234567890",
+        "Calvin": "0011223344",
+        "Louis": "9182374789",
+        "Leela": "939",
+        "Isaac": "48230938989342"
+    },
+    "texts": {
+        "0011223344": [
+            ["rx", "230428081043??", "hey Liam, whats up"],
+            ["tx", "230428081244??", "nm u"],
+            ["rx", "230428081441??", "Hey Liam, I was wondering if you could put the frozen pizza in the oven."]
+        ],
+        "777-432-3491": [
+            ["rx", "230421205320??", "your confirmation code is 993"]
+        ],
+        "48230938989342": [
+            ["tx", "230419181101??", "Oh oh oh yeah"]
+        ],
+        "838-111-8884": [
+            ["tx", "230423093000??", "can you fix my dishwasher?"],
+            ["tx", "230426081043??", "u there?"],
+            ["rx", "230430081043??", "ye"],
+            ["tx", "230430081143??", "thanks"]
+        ]
+    }
+}

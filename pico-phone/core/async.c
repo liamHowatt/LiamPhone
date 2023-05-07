@@ -1,28 +1,8 @@
 #include <stdlib.h>
 #include "async.h"
 #include "async_impl.h"
-
-static void list_push(ListNode **end, void *value) {
-    ListNode *new_node = malloc(sizeof(ListNode));
-    new_node->value = value;
-    new_node->next = *end;
-    *end = new_node;
-}
-static void list_pop(ListNode **end, void **popped) {
-    ListNode *node_being_popped = *end;
-    if (node_being_popped == NULL) {
-        *popped = NULL;
-        return;
-    }
-    *end = node_being_popped->next;
-    *popped = node_being_popped->value;
-    free(node_being_popped);
-}
-static void list_discard(ListNode **end) {
-    ListNode *node_being_discarded = *end;
-    *end = node_being_discarded->next;
-    free(node_being_discarded);
-}
+#include <string.h>
+// #include <stdio.h>
 
 typedef struct {
     int line;
@@ -187,9 +167,47 @@ void async_loop() {
         else if (ret_code == 3) { // detach
             task_stack_value->line = ret.code3_detach.line;
         }
+        else if (ret_code == 4) { // lock acquire
+            task_stack_value->line = ret.code4_lock_acquire.line;
+            if (async_lock_try_acquire(ret.code4_lock_acquire.lock)) {
+                shortcut_task_stack = task_stack;
+            }
+            else {
+                struct async_lock_t *lock = ret.code4_lock_acquire.lock;
+                lock->waiting_stacks = realloc(lock->waiting_stacks, (lock->waiting_stacks_len + 1) * sizeof(ListNode *));
+                memmove(lock->waiting_stacks + 1, lock->waiting_stacks, lock->waiting_stacks_len * sizeof(ListNode *));
+                lock->waiting_stacks[0] = task_stack;
+                lock->waiting_stacks_len += 1;
+            }
+        }
     }
 }
 
 void *async_get_task_stack() {
     return task_stack;
+}
+
+bool async_lock_try_acquire(struct async_lock_t *lock) {
+    if (lock->held) {
+        return false;
+    }
+    lock->held = true;
+    return true;
+}
+
+void async_lock_release(struct async_lock_t *lock) {
+    if (lock->waiting_stacks_len == 0) {
+        lock->held = false;
+    }
+    else {
+        lock->waiting_stacks_len -= 1;
+        schedule_a_value(new_schedule_value(async_null_time(), lock->waiting_stacks[lock->waiting_stacks_len]));
+        if (lock->waiting_stacks_len == 0) {
+            free(lock->waiting_stacks);
+            lock->waiting_stacks = NULL;
+        }
+        else {
+            lock->waiting_stacks = realloc(lock->waiting_stacks, lock->waiting_stacks_len * sizeof(ListNode *));
+        }
+    }
 }
